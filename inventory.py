@@ -85,3 +85,36 @@ def get_non_empty_string(prompt, max_length=100):
             print(Fore.YELLOW + f"Input too long. Max {max_length} characters.")
         else:
             return value
+
+
+def log_action(db, prod_id, action, qty_changed, old_qty, new_qty, notes=''):
+    try:
+        db.cursor.execute("""
+            INSERT INTO inventory_log (prod_id, action, quantity_changed, old_quantity, new_quantity, notes)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (prod_id, action, qty_changed, old_qty, new_qty, notes))
+    except Error as e:
+        logging.error(f"Failed to log action: {e}")
+
+
+def add_product(db):
+    print(Fore.CYAN + "\n--- Add New Product ---")
+    product_name = get_non_empty_string("Product Name: ")
+    category = get_non_empty_string("Category: ")
+    qty = get_positive_int("Quantity in Stock: ")
+    price = get_positive_float("Price: ")
+    supplier_id_input = input("Supplier ID (leave blank if none): ").strip()
+    supplier_id = int(supplier_id_input) if supplier_id_input.isdigit() else None
+    low_stock_threshold = get_positive_int("Low Stock Threshold (default 10): ") or 10
+
+    query = """INSERT INTO products (product_name, category, qty, price, supplier_id, low_stock_threshold)
+               VALUES (%s, %s, %s, %s, %s, %s)"""
+    try:
+        db.cursor.execute(query, (product_name, category, qty, price, supplier_id, low_stock_threshold))
+        prod_id = db.cursor.lastrowid
+        log_action(db, prod_id, 'ADD', qty, 0, qty, 'Product added to inventory')
+        print(Fore.GREEN + f"Product '{product_name}' added successfully with ID {prod_id}.")
+        logging.info(f"Product added: {product_name} (ID: {prod_id})")
+    except Error as e:
+        print(Fore.RED + f"Failed to add product: {e}")
+        logging.error(f"Failed to add product: {e}")
