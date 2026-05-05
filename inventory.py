@@ -457,3 +457,98 @@ def set_low_stock_threshold(db):
     except Error as e:
         print(Fore.RED + f"Failed to update threshold: {e}")
         logging.error(f"Failed to update threshold: {e}")
+
+
+def print_banner():
+    print(Fore.CYAN + Style.BRIGHT + """
+╔══════════════════════════════════════╗
+║      INVENTORY MANAGEMENT SYSTEM     ║
+╚══════════════════════════════════════╝
+""")
+
+
+def show_main_menu():
+    print(Fore.CYAN + "\n--- MAIN MENU ---")
+    menu_items = [
+        ("1", "Add Product"),
+        ("2", "Show All Products"),
+        ("3", "Update Stock"),
+        ("4", "Update Price"),
+        ("5", "Update Product Details"),
+        ("6", "Delete Product"),
+        ("7", "Search Product"),
+        ("8", "Restock Product"),
+        ("9", "Record Sale"),
+        ("10", "Low Stock Alert"),
+        ("11", "Inventory Report"),
+        ("12", "Supplier Management"),
+        ("13", "View Action Log"),
+        ("14", "Export to CSV"),
+        ("15", "Set Low Stock Threshold"),
+        ("0", "Exit")
+    ]
+    for num, label in menu_items:
+        print(f"  {Fore.GREEN}{num:>2}.{Style.RESET_ALL} {label}")
+
+
+def supplier_menu(db):
+    while True:
+        print(Fore.CYAN + "\n--- SUPPLIER MENU ---")
+        print("  1. Add Supplier\n  2. Show All Suppliers\n  0. Back")
+        choice = input("Choice: ").strip()
+        if choice == '1':
+            add_supplier(db)
+        elif choice == '2':
+            show_suppliers(db)
+        elif choice == '0':
+            break
+        else:
+            print(Fore.YELLOW + "Invalid choice.")
+
+
+def main():
+    print_banner()
+    with DatabaseConnection() as db:
+        while True:
+            show_main_menu()
+            choice = input("\nEnter your choice: ").strip()
+            if choice == '1':
+                add_product(db)
+            elif choice == '2':
+                show_products(db)
+            elif choice == '3':
+                update_stock(db)
+            elif choice == '4':
+                update_price(db)
+            elif choice == '5':
+                update_product_details(db)
+            elif choice == '6':
+                delete_product(db)
+            elif choice == '7':
+                search_product(db)
+            elif choice == '8':
+                restock_product(db)
+            elif choice == '9':
+                sell_product(db)
+            elif choice == '10':
+                low_stock_alert(db)
+            elif choice == '11':
+                inventory_report(db)
+            elif choice == '12':
+                supplier_menu(db)
+            elif choice == '13':
+                view_logs(db)
+            elif choice == '14':
+                export_to_csv(db)
+            elif choice == '15':
+                set_low_stock_threshold(db)
+            elif choice == '0':
+                print(Fore.CYAN + "Thank you for using Inventory Management System. Goodbye!")
+                logging.info("Application exited normally")
+                break
+            else:
+                print(Fore.YELLOW + "Invalid choice. Please select from the menu.")
+
+
+if __name__ == '__main__':
+    main()
