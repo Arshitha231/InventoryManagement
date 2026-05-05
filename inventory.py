@@ -186,3 +186,31 @@ def delete_product(db):
     except Error as e:
         print(Fore.RED + f"Failed to delete product: {e}")
         logging.error(f"Failed to delete product: {e}")
+
+
+def search_product(db):
+    print(Fore.CYAN + "\n--- Search Products ---")
+    print("Search by:\n1. Product Name\n2. Category\n3. Product ID")
+    choice = input("Choose (1-3): ").strip()
+    if choice == '1':
+        term = get_non_empty_string("Enter product name (partial ok): ")
+        query = "SELECT prod_id, product_name, category, qty, price FROM products WHERE product_name LIKE %s"
+        db.cursor.execute(query, (f"%{term}%",))
+    elif choice == '2':
+        term = get_non_empty_string("Enter category: ")
+        query = "SELECT prod_id, product_name, category, qty, price FROM products WHERE category LIKE %s"
+        db.cursor.execute(query, (f"%{term}%",))
+    elif choice == '3':
+        prod_id = get_positive_int("Enter Product ID: ")
+        query = "SELECT prod_id, product_name, category, qty, price FROM products WHERE prod_id = %s"
+        db.cursor.execute(query, (prod_id,))
+    else:
+        print(Fore.YELLOW + "Invalid choice.")
+        return
+    rows = db.cursor.fetchall()
+    if not rows:
+        print(Fore.YELLOW + "No products found matching your search.")
+        return
+    headers = ["ID", "Name", "Category", "Qty", "Price"]
+    print(tabulate(rows, headers=headers, tablefmt="grid"))
+    print(Fore.CYAN + f"Found {len(rows)} result(s).")
