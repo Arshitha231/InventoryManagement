@@ -413,3 +413,27 @@ def sell_product(db):
     except Error as e:
         print(Fore.RED + f"Failed to record sale: {e}")
         logging.error(f"Failed to record sale: {e}")
+
+
+def update_product_details(db):
+    print(Fore.CYAN + "\n--- Update Product Details ---")
+    prod_id = get_positive_int("Enter Product ID: ")
+    db.cursor.execute("SELECT product_name, category FROM products WHERE prod_id = %s", (prod_id,))
+    result = db.cursor.fetchone()
+    if not result:
+        print(Fore.YELLOW + f"No product found with ID {prod_id}.")
+        return
+    product_name, category = result
+    print(f"Current Name: {product_name}  |  Current Category: {category}")
+    new_name = input(f"New name (press Enter to keep '{product_name}'): ").strip() or product_name
+    new_category = input(f"New category (press Enter to keep '{category}'): ").strip() or category
+    try:
+        db.cursor.execute(
+            "UPDATE products SET product_name = %s, category = %s WHERE prod_id = %s",
+            (new_name, new_category, prod_id)
+        )
+        print(Fore.GREEN + f"Product details updated successfully.")
+        logging.info(f"Product {prod_id} details updated: name='{new_name}', category='{new_category}'")
+    except Error as e:
+        print(Fore.RED + f"Failed to update product: {e}")
+        logging.error(f"Failed to update product details: {e}")
