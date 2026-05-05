@@ -341,3 +341,23 @@ def export_to_csv(db):
     except Error as e:
         print(Fore.RED + f"Export failed: {e}")
         logging.error(f"Export failed: {e}")
+
+
+def update_price(db):
+    print(Fore.CYAN + "\n--- Update Product Price ---")
+    prod_id = get_positive_int("Enter Product ID: ")
+    db.cursor.execute("SELECT product_name, price FROM products WHERE prod_id = %s", (prod_id,))
+    result = db.cursor.fetchone()
+    if not result:
+        print(Fore.YELLOW + f"No product found with ID {prod_id}.")
+        return
+    product_name, old_price = result
+    print(f"Current price for '{product_name}': ${old_price:.2f}")
+    new_price = get_positive_float("Enter new price: $")
+    try:
+        db.cursor.execute("UPDATE products SET price = %s WHERE prod_id = %s", (new_price, prod_id))
+        print(Fore.GREEN + f"Price updated: '{product_name}' ${old_price:.2f} → ${new_price:.2f}")
+        logging.info(f"Price updated for product ID {prod_id}: {old_price} -> {new_price}")
+    except Error as e:
+        print(Fore.RED + f"Failed to update price: {e}")
+        logging.error(f"Failed to update price: {e}")
