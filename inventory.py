@@ -22,3 +22,31 @@ DB_CONFIG = {
     'password': os.getenv('DB_PASSWORD', ''),
     'database': os.getenv('DB_NAME', 'inventory')
 }
+
+
+class DatabaseConnection:
+    def __init__(self):
+        self.connection = None
+        self.cursor = None
+
+    def __enter__(self):
+        try:
+            self.connection = mysql.connector.connect(**DB_CONFIG)
+            self.cursor = self.connection.cursor()
+            return self
+        except Error as e:
+            logging.error(f"Database connection failed: {e}")
+            print(Fore.RED + f"Error: Could not connect to database. {e}")
+            sys.exit(1)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type:
+            self.connection.rollback()
+            logging.error(f"Transaction rolled back due to: {exc_val}")
+        else:
+            self.connection.commit()
+        if self.cursor:
+            self.cursor.close()
+        if self.connection and self.connection.is_connected():
+            self.connection.close()
+        return False
