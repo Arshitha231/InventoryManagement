@@ -317,3 +317,27 @@ def show_suppliers(db):
         print(tabulate(rows, headers=headers, tablefmt="grid"))
     except Error as e:
         print(Fore.RED + f"Error fetching suppliers: {e}")
+
+
+import csv
+from datetime import datetime
+
+
+def export_to_csv(db):
+    print(Fore.CYAN + "\n--- Export Inventory to CSV ---")
+    try:
+        db.cursor.execute("SELECT prod_id, product_name, category, qty, price, supplier_id, low_stock_threshold FROM products")
+        rows = db.cursor.fetchall()
+        if not rows:
+            print(Fore.YELLOW + "No products to export.")
+            return
+        filename = f"inventory_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        with open(filename, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(["ID", "Product Name", "Category", "Quantity", "Price", "Supplier ID", "Low Stock Threshold"])
+            writer.writerows(rows)
+        print(Fore.GREEN + f"Exported {len(rows)} products to '{filename}'.")
+        logging.info(f"Inventory exported to {filename}")
+    except Error as e:
+        print(Fore.RED + f"Export failed: {e}")
+        logging.error(f"Export failed: {e}")
