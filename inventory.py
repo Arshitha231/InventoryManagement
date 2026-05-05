@@ -236,3 +236,31 @@ def low_stock_alert(db):
     except Error as e:
         print(Fore.RED + f"Error checking stock levels: {e}")
         logging.error(f"Error in low_stock_alert: {e}")
+
+
+def inventory_report(db):
+    print(Fore.CYAN + "\n--- Inventory Report ---")
+    try:
+        db.cursor.execute("SELECT COUNT(*), SUM(qty), SUM(qty * price), AVG(price) FROM products")
+        stats = db.cursor.fetchone()
+        total_products, total_qty, total_value, avg_price = stats
+        print(f"\n{'='*40}")
+        print(f"  Total Products:       {total_products}")
+        print(f"  Total Units in Stock: {total_qty or 0}")
+        print(f"  Total Inventory Value: ${total_value or 0:.2f}")
+        print(f"  Average Product Price: ${avg_price or 0:.2f}")
+        print(f"{'='*40}")
+
+        db.cursor.execute("""
+            SELECT category, COUNT(*) as count, SUM(qty) as total_qty, SUM(qty*price) as value
+            FROM products GROUP BY category ORDER BY value DESC
+        """)
+        categories = db.cursor.fetchall()
+        if categories:
+            print(Fore.CYAN + "\nBy Category:")
+            headers = ["Category", "Products", "Total Qty", "Value"]
+            print(tabulate(categories, headers=headers, tablefmt="grid"))
+        logging.info("Inventory report generated")
+    except Error as e:
+        print(Fore.RED + f"Error generating report: {e}")
+        logging.error(f"Error in inventory_report: {e}")
