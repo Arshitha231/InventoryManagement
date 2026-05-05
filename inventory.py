@@ -118,3 +118,28 @@ def add_product(db):
     except Error as e:
         print(Fore.RED + f"Failed to add product: {e}")
         logging.error(f"Failed to add product: {e}")
+
+
+def show_products(db):
+    print(Fore.CYAN + "\n--- All Products ---")
+    try:
+        db.cursor.execute("""
+            SELECT prod_id, product_name, category, qty, price, supplier_id, low_stock_threshold, updated_at
+            FROM products ORDER BY prod_id
+        """)
+        rows = db.cursor.fetchall()
+        if not rows:
+            print(Fore.YELLOW + "No products found in inventory.")
+            return
+        headers = ["ID", "Name", "Category", "Qty", "Price", "Supplier ID", "Low Stock Alert", "Last Updated"]
+        formatted = []
+        for row in rows:
+            qty = row[3]
+            threshold = row[6]
+            qty_display = f"{Fore.RED}{qty}{Style.RESET_ALL}" if qty <= threshold else str(qty)
+            formatted.append((row[0], row[1], row[2], qty_display, f"${row[4]:.2f}", row[5] or "N/A", threshold, row[7]))
+        print(tabulate(formatted, headers=headers, tablefmt="grid"))
+        print(Fore.CYAN + f"\nTotal products: {len(rows)}")
+    except Error as e:
+        print(Fore.RED + f"Error fetching products: {e}")
+        logging.error(f"Error fetching products: {e}")
