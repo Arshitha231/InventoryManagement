@@ -361,3 +361,25 @@ def update_price(db):
     except Error as e:
         print(Fore.RED + f"Failed to update price: {e}")
         logging.error(f"Failed to update price: {e}")
+
+
+def restock_product(db):
+    print(Fore.CYAN + "\n--- Restock Product ---")
+    prod_id = get_positive_int("Enter Product ID to restock: ")
+    db.cursor.execute("SELECT product_name, qty FROM products WHERE prod_id = %s", (prod_id,))
+    result = db.cursor.fetchone()
+    if not result:
+        print(Fore.YELLOW + f"No product found with ID {prod_id}.")
+        return
+    product_name, current_qty = result
+    print(f"Current stock for '{product_name}': {current_qty}")
+    add_qty = get_positive_int("Quantity to add: ")
+    new_qty = current_qty + add_qty
+    try:
+        db.cursor.execute("UPDATE products SET qty = %s WHERE prod_id = %s", (new_qty, prod_id))
+        log_action(db, prod_id, 'RESTOCK', add_qty, current_qty, new_qty, f'Restocked +{add_qty} units')
+        print(Fore.GREEN + f"Restocked '{product_name}': {current_qty} → {new_qty} (+{add_qty})")
+        logging.info(f"Product {prod_id} restocked: {current_qty} -> {new_qty}")
+    except Error as e:
+        print(Fore.RED + f"Failed to restock: {e}")
+        logging.error(f"Failed to restock: {e}")
