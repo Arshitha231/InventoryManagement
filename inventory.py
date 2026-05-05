@@ -214,3 +214,25 @@ def search_product(db):
     headers = ["ID", "Name", "Category", "Qty", "Price"]
     print(tabulate(rows, headers=headers, tablefmt="grid"))
     print(Fore.CYAN + f"Found {len(rows)} result(s).")
+
+
+def low_stock_alert(db):
+    print(Fore.CYAN + "\n--- Low Stock Alert ---")
+    try:
+        db.cursor.execute("""
+            SELECT prod_id, product_name, qty, low_stock_threshold
+            FROM products
+            WHERE qty <= low_stock_threshold
+            ORDER BY qty ASC
+        """)
+        rows = db.cursor.fetchall()
+        if not rows:
+            print(Fore.GREEN + "All products are adequately stocked!")
+            return
+        headers = ["ID", "Product Name", "Current Qty", "Min Threshold"]
+        print(Fore.RED + f"\nWARNING: {len(rows)} product(s) are low on stock!\n")
+        print(tabulate(rows, headers=headers, tablefmt="grid"))
+        logging.warning(f"Low stock alert: {len(rows)} products below threshold")
+    except Error as e:
+        print(Fore.RED + f"Error checking stock levels: {e}")
+        logging.error(f"Error in low_stock_alert: {e}")
