@@ -264,3 +264,24 @@ def inventory_report(db):
     except Error as e:
         print(Fore.RED + f"Error generating report: {e}")
         logging.error(f"Error in inventory_report: {e}")
+
+
+def view_logs(db):
+    print(Fore.CYAN + "\n--- Inventory Action Log ---")
+    try:
+        db.cursor.execute("""
+            SELECT l.log_id, p.product_name, l.action, l.quantity_changed,
+                   l.old_quantity, l.new_quantity, l.notes, l.logged_at
+            FROM inventory_log l
+            LEFT JOIN products p ON l.prod_id = p.prod_id
+            ORDER BY l.logged_at DESC LIMIT 50
+        """)
+        rows = db.cursor.fetchall()
+        if not rows:
+            print(Fore.YELLOW + "No log entries found.")
+            return
+        headers = ["Log ID", "Product", "Action", "Qty Changed", "Old Qty", "New Qty", "Notes", "Timestamp"]
+        print(tabulate(rows, headers=headers, tablefmt="grid"))
+    except Error as e:
+        print(Fore.RED + f"Error fetching logs: {e}")
+        logging.error(f"Error in view_logs: {e}")
