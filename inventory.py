@@ -285,3 +285,35 @@ def view_logs(db):
     except Error as e:
         print(Fore.RED + f"Error fetching logs: {e}")
         logging.error(f"Error in view_logs: {e}")
+
+
+def add_supplier(db):
+    print(Fore.CYAN + "\n--- Add New Supplier ---")
+    name = get_non_empty_string("Supplier Name: ")
+    email = input("Contact Email (optional): ").strip() or None
+    phone = input("Contact Phone (optional): ").strip() or None
+    address = input("Address (optional): ").strip() or None
+    try:
+        db.cursor.execute(
+            "INSERT INTO suppliers (supplier_name, contact_email, contact_phone, address) VALUES (%s, %s, %s, %s)",
+            (name, email, phone, address)
+        )
+        supplier_id = db.cursor.lastrowid
+        print(Fore.GREEN + f"Supplier '{name}' added with ID {supplier_id}.")
+        logging.info(f"Supplier added: {name} (ID: {supplier_id})")
+    except Error as e:
+        print(Fore.RED + f"Failed to add supplier: {e}")
+
+
+def show_suppliers(db):
+    print(Fore.CYAN + "\n--- All Suppliers ---")
+    try:
+        db.cursor.execute("SELECT supplier_id, supplier_name, contact_email, contact_phone, address FROM suppliers")
+        rows = db.cursor.fetchall()
+        if not rows:
+            print(Fore.YELLOW + "No suppliers found.")
+            return
+        headers = ["ID", "Name", "Email", "Phone", "Address"]
+        print(tabulate(rows, headers=headers, tablefmt="grid"))
+    except Error as e:
+        print(Fore.RED + f"Error fetching suppliers: {e}")
