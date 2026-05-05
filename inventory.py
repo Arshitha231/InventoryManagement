@@ -437,3 +437,23 @@ def update_product_details(db):
     except Error as e:
         print(Fore.RED + f"Failed to update product: {e}")
         logging.error(f"Failed to update product details: {e}")
+
+
+def set_low_stock_threshold(db):
+    print(Fore.CYAN + "\n--- Set Low Stock Threshold ---")
+    prod_id = get_positive_int("Enter Product ID: ")
+    db.cursor.execute("SELECT product_name, low_stock_threshold FROM products WHERE prod_id = %s", (prod_id,))
+    result = db.cursor.fetchone()
+    if not result:
+        print(Fore.YELLOW + f"No product found with ID {prod_id}.")
+        return
+    product_name, current_threshold = result
+    print(f"Current threshold for '{product_name}': {current_threshold}")
+    new_threshold = get_positive_int("Enter new low stock threshold: ")
+    try:
+        db.cursor.execute("UPDATE products SET low_stock_threshold = %s WHERE prod_id = %s", (new_threshold, prod_id))
+        print(Fore.GREEN + f"Threshold updated for '{product_name}': {current_threshold} → {new_threshold}")
+        logging.info(f"Low stock threshold updated for product {prod_id}: {current_threshold} -> {new_threshold}")
+    except Error as e:
+        print(Fore.RED + f"Failed to update threshold: {e}")
+        logging.error(f"Failed to update threshold: {e}")
