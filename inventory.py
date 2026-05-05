@@ -143,3 +143,24 @@ def show_products(db):
     except Error as e:
         print(Fore.RED + f"Error fetching products: {e}")
         logging.error(f"Error fetching products: {e}")
+
+
+def update_stock(db):
+    print(Fore.CYAN + "\n--- Update Stock ---")
+    prod_id = get_positive_int("Enter Product ID to update: ")
+    db.cursor.execute("SELECT product_name, qty FROM products WHERE prod_id = %s", (prod_id,))
+    result = db.cursor.fetchone()
+    if not result:
+        print(Fore.YELLOW + f"No product found with ID {prod_id}.")
+        return
+    product_name, old_qty = result
+    print(f"Current stock for '{product_name}': {old_qty}")
+    new_qty = get_positive_int("Enter new quantity: ")
+    try:
+        db.cursor.execute("UPDATE products SET qty = %s WHERE prod_id = %s", (new_qty, prod_id))
+        log_action(db, prod_id, 'UPDATE', new_qty - old_qty, old_qty, new_qty, 'Stock updated')
+        print(Fore.GREEN + f"Stock updated: '{product_name}' {old_qty} → {new_qty}")
+        logging.info(f"Stock updated for product ID {prod_id}: {old_qty} -> {new_qty}")
+    except Error as e:
+        print(Fore.RED + f"Failed to update stock: {e}")
+        logging.error(f"Failed to update stock: {e}")
