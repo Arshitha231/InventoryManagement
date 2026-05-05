@@ -383,3 +383,33 @@ def restock_product(db):
     except Error as e:
         print(Fore.RED + f"Failed to restock: {e}")
         logging.error(f"Failed to restock: {e}")
+
+
+def sell_product(db):
+    print(Fore.CYAN + "\n--- Record Sale ---")
+    prod_id = get_positive_int("Enter Product ID: ")
+    db.cursor.execute("SELECT product_name, qty FROM products WHERE prod_id = %s", (prod_id,))
+    result = db.cursor.fetchone()
+    if not result:
+        print(Fore.YELLOW + f"No product found with ID {prod_id}.")
+        return
+    product_name, current_qty = result
+    print(f"Available stock for '{product_name}': {current_qty}")
+    if current_qty == 0:
+        print(Fore.RED + "Product is out of stock!")
+        return
+    sell_qty = get_positive_int("Quantity to sell: ")
+    if sell_qty > current_qty:
+        print(Fore.RED + f"Cannot sell {sell_qty} units. Only {current_qty} available.")
+        return
+    new_qty = current_qty - sell_qty
+    try:
+        db.cursor.execute("UPDATE products SET qty = %s WHERE prod_id = %s", (new_qty, prod_id))
+        log_action(db, prod_id, 'SELL', -sell_qty, current_qty, new_qty, f'Sold {sell_qty} units')
+        print(Fore.GREEN + f"Sale recorded: '{product_name}' {current_qty} → {new_qty} (-{sell_qty})")
+        if new_qty <= 10:
+            print(Fore.YELLOW + f"WARNING: Low stock alert for '{product_name}'! Only {new_qty} units remaining.")
+        logging.info(f"Product {prod_id} sold: {sell_qty} units, remaining: {new_qty}")
+    except Error as e:
+        print(Fore.RED + f"Failed to record sale: {e}")
+        logging.error(f"Failed to record sale: {e}")
