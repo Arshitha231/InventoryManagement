@@ -164,3 +164,25 @@ def update_stock(db):
     except Error as e:
         print(Fore.RED + f"Failed to update stock: {e}")
         logging.error(f"Failed to update stock: {e}")
+
+
+def delete_product(db):
+    print(Fore.CYAN + "\n--- Delete Product ---")
+    prod_id = get_positive_int("Enter Product ID to delete: ")
+    db.cursor.execute("SELECT product_name FROM products WHERE prod_id = %s", (prod_id,))
+    result = db.cursor.fetchone()
+    if not result:
+        print(Fore.YELLOW + f"No product found with ID {prod_id}.")
+        return
+    product_name = result[0]
+    confirm = input(Fore.YELLOW + f"Are you sure you want to delete '{product_name}'? (yes/no): ").strip().lower()
+    if confirm != 'yes':
+        print("Deletion cancelled.")
+        return
+    try:
+        db.cursor.execute("DELETE FROM products WHERE prod_id = %s", (prod_id,))
+        print(Fore.GREEN + f"Product '{product_name}' deleted successfully.")
+        logging.info(f"Product deleted: {product_name} (ID: {prod_id})")
+    except Error as e:
+        print(Fore.RED + f"Failed to delete product: {e}")
+        logging.error(f"Failed to delete product: {e}")
